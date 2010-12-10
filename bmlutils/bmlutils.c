@@ -28,7 +28,7 @@ int cmd_bml_restore_raw_partition(const char *partition, const char *filename)
     if (0 != strcmp("boot", partition)) {
         return -1;
     }
-    sprintf("bmlwrite %s /dev/block/bml7", filename);
+    sprintf(tmp, "bmlwrite %s /dev/block/bml7", filename);
     return __system(tmp);
 }
 
@@ -38,7 +38,7 @@ int cmd_bml_backup_raw_partition(const char *partition, const char *filename)
     if (0 != strcmp("boot", partition)) {
         return -1;
     }
-    sprintf("dd of=%s if=/dev/block/bml7 bs=4096", filename);
+    sprintf(tmp, "dd of=%s if=/dev/block/bml7 bs=4096", filename);
     return __system(tmp);
 }
 
