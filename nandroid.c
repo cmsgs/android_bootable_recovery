@@ -213,7 +213,7 @@ int nandroid_restore_partition_extended(const char* backup_path, const char* roo
     
     char tmp[PATH_MAX];
     sprintf(tmp, "%s/%s.img", backup_path, name);
-    struct stat file_info;
+    struct statfs file_info;
     if (0 != (ret = statfs(tmp, &file_info))) {
         ui_print("%s.img not found. Skipping restore of %s.\n", name, mount_point);
         return 0;
