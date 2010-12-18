@@ -139,11 +139,13 @@ int nandroid_backup(const char* backup_path)
     if (0 != ret)
         return print_and_error("Error while dumping boot image!\n");
 
+#ifndef BOARD_HAS_NO_RECOVERY_PARTITION
     ui_print("Backing up recovery...\n");
     sprintf(tmp, "%s/%s", backup_path, "recovery.img");
     ret = backup_raw_partition("recovery", tmp);
     if (0 != ret)
         return print_and_error("Error while dumping recovery image!\n");
+#endif
 #endif
 
     if (0 != (ret = nandroid_backup_partition(backup_path, "SYSTEM:")))
