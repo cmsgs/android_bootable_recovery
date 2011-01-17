@@ -19,6 +19,7 @@
 
 #include <signal.h>
 #include <sys/wait.h>
+#include <libgen.h>
 
 #include "bootloader.h"
 #include "common.h"
@@ -42,6 +43,10 @@
 int signature_check_enabled = 1;
 int script_assert_enabled = 1;
 static const char *SDCARD_PACKAGE_FILE = "SDCARD:update.zip";
+
+int confirm_selection(const char* title, const char* confirm);
+char* choose_file_menu(const char* directory, const char* fileExtensionOrDirectory, const char* headers[]);
+void handle_failure(int ret);
 
 void
 toggle_signature_check()
@@ -429,9 +434,17 @@ int format_unknown_device(const char* root)
     return 0;
 }
 
+#ifdef BOARD_HAS_SDCARD_INTERNAL
+#define MOUNTABLE_COUNT 6
+#else
 #define MOUNTABLE_COUNT 5
+#endif
 #define MTD_COUNT 4
+#ifdef BOARD_HAS_SDCARD_INTERNAL
+#define MMC_COUNT 3
+#else
 #define MMC_COUNT 2
+#endif
 
 void show_partition_menu()
 {
@@ -826,6 +839,7 @@ void show_advanced_menu()
                 while (action != GO_BACK);
                 break;
             }
+#ifndef BOARD_HAS_SMALL_RECOVERY
             case 6:
             {
                 static char* ext_sizes[] = { "128M",
@@ -878,7 +892,8 @@ void show_advanced_menu()
                 ui_print("Done!\n");
                 break;
             }
-            case 7:
+#ifdef BOARD_HAS_SDCARD_INTERNAL
+            case 8:
             {
                 static char* ext_sizes[] = { "128M",
                                              "256M",
@@ -921,6 +936,8 @@ void show_advanced_menu()
                     ui_print("An error occured while partitioning your Internal SD Card. Please see /tmp/recovery.log for more details.\n");
                 break;
             }
+#endif
+#endif
         }
     }
 }

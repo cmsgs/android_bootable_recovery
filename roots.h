@@ -149,4 +149,7 @@ typedef struct {
     const char *filesystem_options;
 } RootInfo;
 
+const RootInfo *
+get_root_info_for_path(const char *root_path);
+
 #endif  // RECOVERY_ROOTS_H_
