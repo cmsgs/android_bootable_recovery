@@ -29,7 +29,7 @@
 #include "minui/minui.h"
 #include "recovery_ui.h"
 
-#ifdef KEY_POWER_IS_SELECT_ITEM
+#ifdef BOARD_HAS_NO_SELECT_BUTTON
 static int gShowBackButton = 1;
 #else
 static int gShowBackButton = 0;
@@ -41,8 +41,13 @@ static int gShowBackButton = 0;
 #define MENU_MAX_COLS 64
 #define MENU_MAX_ROWS 250
 
-#define CHAR_WIDTH 10
-#define CHAR_HEIGHT 18
+#ifndef BOARD_LDPI_RECOVERY
+  #define CHAR_WIDTH 10
+  #define CHAR_HEIGHT 18
+#else
+  #define CHAR_WIDTH 7
+  #define CHAR_HEIGHT 16
+#endif
 
 #define PROGRESSBAR_INDETERMINATE_STATES 6
 #define PROGRESSBAR_INDETERMINATE_FPS 15

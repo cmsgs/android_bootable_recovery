@@ -21,15 +21,55 @@
 #include <sys/wait.h>
 
 extern int __system(const char *command);
+#define BML_UNLOCK_ALL				0x8A29		///< unlock all partition RO -> RW
+
+static int restore_internal(const char* bml, const char* filename)
+{
+    char buf[4096];
+    int dstfd, srcfd, bytes_read, bytes_written, total_read = 0;
+    if (filename == NULL)
+        srcfd = 0;
+    else {
+        srcfd = open(filename, O_RDONLY | O_LARGEFILE);
+        if (srcfd < 0)
+            return 2;
+    }
+    dstfd = open(bml, O_RDWR | O_LARGEFILE);
+    if (dstfd < 0)
+        return 3;
+    if (ioctl(dstfd, BML_UNLOCK_ALL, 0))
+        return 4;
+    do {
+        total_read += bytes_read = read(srcfd, buf, 4096);
+        if (!bytes_read)
+            break;
+        if (bytes_read < 4096)
+            memset(&buf[bytes_read], 0, 4096 - bytes_read);
+        if (write(dstfd, buf, 4096) < 4096)
+            return 5;
+    } while(bytes_read == 4096);
+    
+    close(dstfd);
+    close(srcfd);
+    
+    return 0;
+}
 
 int cmd_bml_restore_raw_partition(const char *partition, const char *filename)
 {
-    char tmp[PATH_MAX];
-    if (0 != strcmp("boot", partition)) {
-        return -1;
-    }
-    sprintf(tmp, "bmlwrite %s /dev/block/bml7", filename);
-    return __system(tmp);
+    char *bml;
+    if (strcmp(partition, "boot") == 0 || strcmp(partition, "recovery") == 0)
+        bml = "/dev/block/bml7";
+    else
+        return 6;
+
+    int ret = restore_internal("/dev/block/bml7", filename);
+    if (ret != 0)
+        return ret;
+#ifndef BOARD_HAS_NO_RECOVERY_PARTITION
+    ret = restore_internal("/dev/block/bml8", filename);
+#endif
+    return ret;
 }
 
 int cmd_bml_backup_raw_partition(const char *partition, const char *filename)

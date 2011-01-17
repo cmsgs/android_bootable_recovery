@@ -29,7 +29,12 @@
 
 #include <pixelflinger/pixelflinger.h>
 
-#include "font_10x18.h"
+#ifndef BOARD_LDPI_RECOVERY
+	#include "font_10x18.h"
+#else
+	#include "font_7x16.h"
+#endif
+
 #include "minui.h"
 
 typedef struct {
@@ -63,17 +68,33 @@ static int get_framebuffer(GGLSurface *fb)
         return -1;
     }
 
+    if (ioctl(fd, FBIOGET_VSCREENINFO, &vi) < 0) {
+        perror("failed to get fb0 info");
+        close(fd);
+        return -1;
+    }
+
+    if (16 != vi.bits_per_pixel)
+    {
+        vi.bits_per_pixel = 16;
+        if (ioctl(fd, FBIOPUT_VSCREENINFO, &vi) < 0) {
+            perror("failed to put fb0 info");
+            close(fd);
+            return -1;
+        }
+        if (ioctl(fd, FBIOGET_VSCREENINFO, &vi) < 0) {
+            perror("failed to get fb0 info");
+            close(fd);
+            return -1;
+        }
+    }
+
     if (ioctl(fd, FBIOGET_FSCREENINFO, &fi) < 0) {
         perror("failed to get fb0 info");
         close(fd);
         return -1;
     }
 
-    if (ioctl(fd, FBIOGET_VSCREENINFO, &vi) < 0) {
-        perror("failed to get fb0 info");
-        close(fd);
-        return -1;
-    }
 
     bits = mmap(0, fi.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (bits == MAP_FAILED) {

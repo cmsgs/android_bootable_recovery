@@ -50,6 +50,9 @@ static RootInfo g_roots[] = {
     { "PACKAGE:", NULL, NULL, NULL, NULL, g_package_file, NULL },
     { "RECOVERY:", g_default_device, NULL, "recovery", "/", g_raw, NULL },
     { "SDCARD:", BOARD_SDCARD_DEVICE_PRIMARY, BOARD_SDCARD_DEVICE_SECONDARY, NULL, "/sdcard", "vfat", NULL },
+#ifdef BOARD_HAS_SDCARD_INTERNAL
+    { "SDINTERNAL:", BOARD_SDCARD_DEVICE_INTERNAL, NULL, NULL, "/emmc", "vfat", NULL },
+#endif
     { "SDEXT:", BOARD_SDEXT_DEVICE, NULL, NULL, "/sd-ext", BOARD_SDEXT_FILESYSTEM, NULL },
     { "SYSTEM:", BOARD_SYSTEM_DEVICE, NULL, "system", "/system", BOARD_SYSTEM_FILESYSTEM, BOARD_SYSTEM_FILESYSTEM_OPTIONS },
     { "MBM:", g_default_device, NULL, "mbm", NULL, g_raw, NULL },
@@ -302,15 +305,15 @@ int
 get_root_partition_device(const char *root_path, char *device)
 {
     const RootInfo *info = get_root_info_for_path(root_path);
-    if (info == NULL || info->device != g_default_device ||
-            info->partition_name == NULL)
+    if (info == NULL)
     {
         return NULL;
     }
-    return get_partition_device(info->partition_name, device);
+    if (info->device == g_default_device)
+        return get_partition_device(info->partition_name, device);
+    return info->device;
 }
 
-#ifndef BOARD_HAS_NO_MISC_PARTITION
 const MtdPartition *
 get_root_mtd_partition(const char *root_path)
 {
@@ -328,7 +331,6 @@ get_root_mtd_partition(const char *root_path)
     mtd_scan_partitions();
     return mtd_find_partition_by_name(info->partition_name);
 }
-#endif
 
 int
 format_root_device(const char *root)
